@@ -1,0 +1,1 @@
+create table TITNDESC (RES_TYPE char(1) not null, ITIN_DESC char(50) not null, WEB_ITIN_CODE char(20) not null, TRADE_CODE char(1) not null, primary key (WEB_ITIN_CODE, TRADE_CODE))

@@ -1,0 +1,109 @@
+buildscript {
+    ext.springRepo = 'http://repo.spring.io/libs-release'
+    ext {
+        springBootVersion = '2.0.3.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven { url springRepo }
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
+        classpath "me.champeau.gradle:jmh-gradle-plugin:0.4.6"       
+    }
+}
+
+group = "com.sample.jmh"
+
+def vJavaLang = '1.7'
+
+def javaProjects = [
+        project(':model'),
+        project(':jpa-repositories'),
+        project(':product')
+]
+
+def bootProjects = [
+        project(':product')
+]
+
+wrapper.gradleVersion = 4.7
+
+configure(javaProjects) {
+    repositories {
+        mavenLocal()
+        maven { url springRepo }
+        maven {
+            url 'https://repo.spring.io/libs-milestone'
+        }
+        mavenCentral()
+        maven {url "https://artifacts.alfresco.com/nexus/content/repositories/public/"}	
+    }
+
+    apply plugin: 'java'
+    apply plugin: "io.spring.dependency-management"
+    apply plugin: 'maven'
+    apply plugin: 'checkstyle'
+    apply plugin: "me.champeau.gradle.jmh"
+    //apply plugin: 'com.github.spotbugs'
+
+    targetCompatibility = vJavaLang
+    sourceCompatibility = vJavaLang
+
+    afterEvaluate {
+        dependencyManagement {
+            imports {
+                mavenBom('io.spring.platform:platform-bom:Cairo-SR5') {
+                    bomProperty 'guava.version', '25.1-jre'
+                }
+            }
+
+        }
+    }
+    
+	dependencies {   
+		compile('org.springframework.boot:spring-boot-configuration-processor')
+	    compile('org.springframework.boot:spring-boot-starter-web')
+		compile("org.springframework.boot:spring-boot-starter-data-jpa")
+	    compile("org.springframework.boot:spring-boot-starter-cache")
+	    compile("org.springframework.boot:spring-boot-starter-data-redis")
+	    compile("org.springframework:spring-orm:4.3.10.RELEASE")
+			
+		compile 'commons-io:commons-io'
+		compile 'commons-codec:commons-codec'
+		compile 'commons-io:commons-io'
+		compile 'org.apache.commons:commons-lang3'
+
+	    testCompile('org.springframework.boot:spring-boot-starter-test')  
+	}
+    jmh {
+	   	//include = '*ControllerBenchmark.*' // include pattern (regular expression) for benchmarks to be executed
+		humanOutputFile = null
+		fork = 1
+		warmupIterations = 1
+		benchmarkMode = ['thrpt','avgt']
+		iterations = 1
+		duplicateClassesStrategy = 'warn'
+		timeUnit = 'ns'
+	} 
+	
+    checkstyle {
+        ignoreFailures = false
+        sourceSets = [sourceSets.main]    
+       	// gradle uses a older version of checkstyle which doesnt support all checkers
+       	// e.g. getting error "Token "METHOD_REF" was not found in Acceptable tokens list in check com.puppycrawl.tools.checkstyle.checks.whitespace.SeparatorWrapCheck"   
+    	toolVersion '8.11'
+    }
+
+}
+
+configure(bootProjects) {
+    apply plugin: 'org.springframework.boot' 
+    springBoot {
+        buildInfo()
+    }
+}

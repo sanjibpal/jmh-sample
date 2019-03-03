@@ -1,0 +1,13 @@
+group 'com.sample.jmh.model'
+version '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile('javax.validation:validation-api')
+    compile('joda-time:joda-time')
+    compile('com.fasterxml.jackson.core:jackson-databind')
+}

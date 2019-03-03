@@ -1,0 +1,4 @@
+rootProject.name = 'jmh-sample'
+include 'model'
+include 'jpa-repositories'
+include 'product'
